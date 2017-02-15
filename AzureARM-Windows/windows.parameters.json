@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachines_VM01_Subnet01_adminPassword": {
+            "value": "1234567890a@"
+        },
+        "virtualMachines_VM01_Subnet01_name": {
+            "value": "VM01-Subnet01E"
+        },
+        "networkInterfaces_vm01_subnet01945_name": {
+            "value": "vm01-subnet01945"
+        },
+        "networkSecurityGroups_NSG_VN01_Subnet01_name": {
+            "value": "NSG-VN01-Subnet01"
+        },
+        "publicIPAddresses_VM01_Subnet01_ip_name": {
+            "value": "VM01-Subnet01-ip"
+        },
+        "virtualNetworks_VN01_name": {
+            "value": "VN01"
+        }
+    }
+}

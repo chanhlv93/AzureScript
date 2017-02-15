@@ -1,0 +1,222 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachines_VM01_Subnet01_adminPassword": {
+            "defaultValue": null,
+            "type": "SecureString"
+        },
+        "virtualMachines_VM01_Subnet01_name": {
+            "defaultValue": "VM01-Subnet01",
+            "type": "String"
+        },
+        "networkInterfaces_vm01_subnet01945_name": {
+            "defaultValue": "vm01-subnet01945",
+            "type": "String"
+        },
+        "networkSecurityGroups_NSG_VN01_Subnet01_name": {
+            "defaultValue": "NSG-VN01-Subnet01",
+            "type": "String"
+        },
+        "publicIPAddresses_VM01_Subnet01_ip_name": {
+            "defaultValue": "VM01-Subnet01-ip",
+            "type": "String"
+        },
+        "virtualNetworks_VN01_name": {
+            "defaultValue": "VN01",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "comments": "Generalized from resource: '/subscriptions/e5579074-580a-47f7-a097-80bb85998724/resourceGroups/CLI-LAB-TEMPORARY/providers/Microsoft.Compute/virtualMachines/VM01-Subnet01'.",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('virtualMachines_VM01_Subnet01_name')]",
+            "apiVersion": "2015-06-15",
+            "location": "westus",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_DS1_v2"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2008-R2-SP1",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[parameters('virtualMachines_VM01_Subnet01_name')]",
+                        "createOption": "FromImage",
+                        "vhd": {
+                            "uri": "[concat('https://clibeginlab001disks106.blob.core.windows.net/vhds/', parameters('virtualMachines_VM01_Subnet01_name'),'CLI20170203140333.vhd')]"
+                        },
+                        "caching": "ReadWrite"
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_VM01_Subnet01_name')]",
+                    "adminUsername": "admin01",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true
+                    },
+                    "secrets": [],
+                    "adminPassword": "[parameters('virtualMachines_VM01_Subnet01_adminPassword')]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_vm01_subnet01945_name'))]"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+				{
+					"name": "customPowerShellScript",
+					"type": "extensions",
+					"location": "[resourceGroup().location]",
+					"apiVersion": "2015-06-15",
+					"dependsOn": [
+						"[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachines_VM01_Subnet01_name'))]"
+					],
+					"tags": {
+						"displayName": "customPowerShellScript"
+					},
+					"properties": {
+						"publisher": "Microsoft.Compute",
+						"type": "CustomScriptExtension",
+						"typeHandlerVersion": "1.8",
+						"autoUpgradeMinorVersion": true,
+						"settings": {
+							"fileUris": [
+								"https://clibeginlab001diag233.blob.core.windows.net/blobchanhlv/Create-User.ps1"
+							],
+							"commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File Create-User.ps1"
+						}
+					}
+				}
+			],
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_vm01_subnet01945_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e5579074-580a-47f7-a097-80bb85998724/resourceGroups/CLI-LAB-TEMPORARY/providers/Microsoft.Network/networkInterfaces/vm01-subnet01945'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_vm01_subnet01945_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "westus",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "10.0.0.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_VM01_Subnet01_ip_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_VN01_name')), '/subnets/VN01-Subnet01')]"
+                            }
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableIPForwarding": false
+            },
+            "resources": [],
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_VM01_Subnet01_ip_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_VN01_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e5579074-580a-47f7-a097-80bb85998724/resourceGroups/CLI-LAB-TEMPORARY/providers/Microsoft.Network/networkSecurityGroups/NSG-VN01-Subnet01'.",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[parameters('networkSecurityGroups_NSG_VN01_Subnet01_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "westus",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "Enable-RemoteDesktop-3389",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "deny-vNet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Deny",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            },
+            "resources": [],
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e5579074-580a-47f7-a097-80bb85998724/resourceGroups/CLI-LAB-TEMPORARY/providers/Microsoft.Network/publicIPAddresses/VM01-Subnet01-ip'.",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('publicIPAddresses_VM01_Subnet01_ip_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "westus",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4
+            },
+            "resources": [],
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e5579074-580a-47f7-a097-80bb85998724/resourceGroups/CLI-LAB-TEMPORARY/providers/Microsoft.Network/virtualNetworks/VN01'.",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworks_VN01_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "westus",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[concat(parameters('virtualNetworks_VN01_name'),'-Subnet01')]",
+                        "properties": {
+                            "addressPrefix": "10.0.0.0/24",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_NSG_VN01_Subnet01_name'))]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "resources": [],
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_NSG_VN01_Subnet01_name'))]"
+            ]
+        }
+    ]
+}
