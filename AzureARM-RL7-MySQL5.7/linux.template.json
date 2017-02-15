@@ -1,0 +1,232 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachines_redhat_enterprise_linux_adminPassword": {
+            "defaultValue": null,
+            "type": "SecureString"
+        },
+        "virtualMachines_redhat_enterprise_linux_name": {
+            "defaultValue": "redhat-linux-mysql",
+            "type": "String"
+        },
+        "networkInterfaces_redhat_enterprise_li602_name": {
+            "defaultValue": "redhat-enterprise-li602",
+            "type": "String"
+        },
+        "networkSecurityGroups_NSG_VN01_Subnet02_name": {
+            "defaultValue": "NSG-VN01-Subnet02",
+            "type": "String"
+        },
+        "publicIPAddresses_redhat_enterprise_linux_ip_name": {
+            "defaultValue": "redhat-linux-mysql-ip",
+            "type": "String"
+        },
+        "virtualNetworks_VN01_name": {
+            "defaultValue": "VN01",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('virtualMachines_redhat_enterprise_linux_name')]",
+            "apiVersion": "2015-06-15",
+            "location": "westus",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_DS2_v2"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "RedHat",
+                        "offer": "RHEL",
+                        "sku": "7.3",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[parameters('virtualMachines_redhat_enterprise_linux_name')]",
+                        "createOption": "FromImage",
+                        "vhd": {
+                            "uri": "[concat('https://clibeginlab001disks106.blob.core.windows.net/vhds/', parameters('virtualMachines_redhat_enterprise_linux_name'),'CLI20170209142934.vhd')]"
+                        },
+                        "caching": "ReadWrite"
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_redhat_enterprise_linux_name')]",
+                    "adminUsername": "cli",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "/home/cli/.ssh/authorized_keys",
+                                    "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/1Kju+oO8mwMI5sRjdSSER3vfvPqyGMVlhghMj1XRky3CCReVMBGMyVmkGHtZFdV9d8x8id11fTOs5qaSqE14u+Oh2oGajCrzFHraOWQUk22HoN2K3hsAkYkBsA/1q5aCxuCgD9FK0KQ0W5S46ugMKj/WXxEZwHqn6ylEyGRFN++xFMzAuqz3Ds04cbphgHdrH5sujZ6qoLYipbUBUtM0CeaI7MQ3ai8yISmvhi6a04+BIVcO2zx9lpGvG8VNbpc4T37yLx4oyxtQNROu4UgNNrVcWhA3xUiXk7P0T5wVEaR+iTGO2Yw6miyUo7zfvu0z1Um58W0VvrUaHmp1o7x/"
+                                }
+                            ]
+                        }
+                    },
+                    "secrets": [],
+                    "adminPassword": "[parameters('virtualMachines_redhat_enterprise_linux_adminPassword')]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_redhat_enterprise_li602_name'))]"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+				{
+					"name": "customBashScript",
+					"type": "extensions",
+					"location": "[resourceGroup().location]",
+					"apiVersion": "2015-06-15",
+					"dependsOn": [
+						"[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachines_redhat_enterprise_linux_name'))]"
+					],
+					"tags": {
+						"displayName": "customBashScript"
+					},
+					"properties": {
+						"publisher": "Microsoft.OSTCExtensions",
+						"type": "CustomScriptForLinux",
+						"typeHandlerVersion": "1.0",
+						"autoUpgradeMinorVersion": true,
+						"settings": {
+							"fileUris": [
+								"https://clibeginlab001diag233.blob.core.windows.net/blobchanhlv/install_mysql57_rl7.sh"
+							],
+							"commandToExecute": "sh install_mysql57_rl7.sh"
+						}
+					}
+				}
+			],
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_redhat_enterprise_li602_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e5579074-580a-47f7-a097-80bb85998724/resourceGroups/CLI-LAB-TEMPORARY/providers/Microsoft.Network/networkInterfaces/redhat-enterprise-li602'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_redhat_enterprise_li602_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "westus",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "10.0.1.6",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_redhat_enterprise_linux_ip_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_VN01_name')), '/subnets/VN01-Subnet02')]"
+                            }
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableIPForwarding": false,
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_NSG_VN01_Subnet02_name'))]"
+                }
+            },
+            "resources": [],
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_redhat_enterprise_linux_ip_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_VN01_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_NSG_VN01_Subnet02_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e5579074-580a-47f7-a097-80bb85998724/resourceGroups/CLI-LAB-TEMPORARY/providers/Microsoft.Network/networkSecurityGroups/NSG-VN01-Subnet02'.",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[parameters('networkSecurityGroups_NSG_VN01_Subnet02_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "westus",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow_httpinternet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 120,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "allow_ssh",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            },
+            "resources": [],
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e5579074-580a-47f7-a097-80bb85998724/resourceGroups/CLI-LAB-TEMPORARY/providers/Microsoft.Network/publicIPAddresses/redhat-enterprise-linux-ip'.",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('publicIPAddresses_redhat_enterprise_linux_ip_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "westus",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4
+            },
+            "resources": [],
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/e5579074-580a-47f7-a097-80bb85998724/resourceGroups/CLI-LAB-TEMPORARY/providers/Microsoft.Network/virtualNetworks/VN01'.",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworks_VN01_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "westus",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[concat(parameters('virtualNetworks_VN01_name'),'-Subnet02')]",
+                        "properties": {
+                            "addressPrefix": "10.0.1.0/24",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_NSG_VN01_Subnet02_name'))]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "resources": [],
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_NSG_VN01_Subnet02_name'))]"
+            ]
+        }
+    ]
+}
