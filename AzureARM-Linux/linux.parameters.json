@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachines_redhat_enterprise_linux_adminPassword": {
+            "value": ""
+        },
+        "virtualMachines_redhat_enterprise_linux_name": {
+            "value": "redhat-enterprise-linux"
+        },
+        "networkInterfaces_redhat_enterprise_li602_name": {
+            "value": "redhat-enterprise-li602"
+        },
+        "networkSecurityGroups_NSG_VN01_Subnet02_name": {
+            "value": "NSG-VN01-Subnet02"
+        },
+        "publicIPAddresses_redhat_enterprise_linux_ip_name": {
+            "value": "redhat-enterprise-linux-ip"
+        },
+        "virtualNetworks_VN01_name": {
+            "value": "VN01"
+        }
+    }
+}
